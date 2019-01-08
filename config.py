@@ -16,9 +16,8 @@ class TrainConfig(NamedTuple):
     seed = 123  # random seed
     batch_size = 32
     lr = 0.001  # learning rate
-    n_epochs = 10  # the number of epoch
+    n_epochs = 20  # the number of epoch
     # `warm up` period = warmup(0.1)*total_steps
     # linearly increasing learning rate from zero to the specified value(5e-5)
-    warmup = 0.1
     save_steps = 1000  # interval for saving persona_model
     total_steps = 100000  # total number of steps to train

@@ -30,7 +30,7 @@ def main(mode='train',
     data_iter = DataLoader(dataset, batch_size=cfg.batch_size, shuffle=True)
     print('Model Loading...')
     persona_model = model.PersonaBasedModel(model_cfg, word_embed)
-    criterion = nn.CrossEntropyLoss()
+    criterion = nn.BCELoss()
     trainer = train.Trainer(cfg,
                             persona_model,
                             data_iter,
@@ -41,22 +41,27 @@ def main(mode='train',
         print('mode:train')
 
         def get_loss(model, batch, global_step):  # make sure loss is a scalar tensor
-            input_ids, segment_ids, input_mask, label_id = batch
-            logits = model(input_ids, segment_ids, input_mask)
-            loss = criterion(logits, label_id)
-            return loss
+            contexts_ids, query_ids, response_ids, label_ids = batch
+            logits = model(contexts_ids, query_ids, response_ids)
+            label_ids = label_ids.type(torch.float).unsqueeze(1)
+            loss = criterion(logits, label_ids)
+            output = (logits.squeeze() > 0.5).float()
+            result = (output == label_ids.squeeze()).float()
+            acc = result.mean()
+            return loss, acc
 
         trainer.train(get_loss)
     elif mode == 'eval':
         print('mode:eval')
 
         def evaluate(model, batch):
-            input_ids, segment_ids, input_mask, label_id = batch
-            logits = model(input_ids, segment_ids, input_mask)
-            _, label_pred = logits.max(1)
-            result = (label_pred == label_id).float()  # .cpu().numpy()
-            accuracy = result.mean()
-            return accuracy, result
+            contexts_ids, query_ids, response_ids, label_ids = batch
+            logits = model(contexts_ids, query_ids, response_ids)
+            label_ids = label_ids.type(torch.float).unsqueeze(1)
+            output = (logits.squeeze() > 0.5).float()
+            result = (output == label_ids.squeeze()).float()
+            acc = result.mean()
+            return acc, result
 
         results = trainer.eval(evaluate, model_file)
         total_accuracy = torch.cat(results).mean().item()

@@ -18,7 +18,8 @@ class PersonaBasedModel(nn.Module):
         self.output_context_encoder = BOWEncoder(cfg.encoder_size, self.embedding)
         self.temp_enc_for_m = nn.Parameter(torch.Tensor(1, cfg.max_context_len, cfg.embed_size).normal_(0, 0.1))
         self.temp_enc_for_c = nn.Parameter(torch.Tensor(1, cfg.max_context_len, cfg.embed_size).normal_(0, 0.1))
-        self.classifier = nn.Linear(cfg.embed_size, 2)
+        self.classifier = nn.Linear(cfg.embed_size, 1)
+        self.sigmoid = nn.Sigmoid()
 
     def forward(self, contexts, query, response):
         # modules
@@ -34,5 +35,5 @@ class PersonaBasedModel(nn.Module):
         prob = F.softmax((context_m * query_u.unsqueeze(1)).sum(2), dim=1)  # (batch_size,memory_len)
         o = (prob.unsqueeze(2) * context_c).sum(1)  # (batch_size,embed_size)
         o = (o + query_u) * response  # residual connection
-        logits = self.classifier(o)
+        logits = self.sigmoid(self.classifier(o))
         return logits

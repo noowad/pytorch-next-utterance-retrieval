@@ -15,14 +15,13 @@ class DialogueDataset(Dataset):
     def __init__(self, dir, mode, pipeline=[]):  # csv file and pipeline object
         Dataset.__init__(self)
         data = []
-        with open(os.path.join(dir, mode + '.csv'), "r") as f:
+        with open(os.path.join(dir, 'tmp.csv'), "r") as f:
             # list of splitted lines : line is also list
             lines = csv.reader(f, delimiter='\t', quotechar=None)
             for instance in self.get_instances(lines):  # instance : tuple of fields
                 for proc in pipeline:  # a bunch of pre-processing
                     instance = proc(instance)
                 data.append(instance)
-
         self.tensors = [torch.tensor(x, dtype=torch.long) for x in zip(*data)]
 
     def __len__(self):

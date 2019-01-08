@@ -69,7 +69,6 @@ class TokenIndexing(Pipeline):
         query_id = self.indexer(load_vocab(self.vocab_file, self.min_cnt), tokens_b)
         response_id = self.indexer(load_vocab(self.vocab_file, self.min_cnt), tokens_c)
         label_id = self.label_map[label]
-
         # zero padding
         for context_id in context_ids:
             context_id.extend([0] * (self.max_len - len(context_id)))
